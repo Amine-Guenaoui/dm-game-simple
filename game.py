@@ -1,5 +1,6 @@
 import pygame
 from player import Player
+from apriori import apriori_items_generator
 # initializing
 pygame.init()
 
@@ -27,6 +28,13 @@ textY = 300
 pygame.mixer.init()
 background_music = pygame.mixer.music.load("Glimpse - Ambitions.mp3")
 pygame.mixer.music.play(-1)
+
+
+# getting appriori items
+application = apriori_items_generator()
+application.show_rules()
+
+
 # characters
 boss = [
     pygame.image.load('Characters/Boss_character2/satisfied.png'),

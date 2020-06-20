@@ -16,11 +16,13 @@ pygame.display.set_caption("Grocery Store")
 # background
 background = pygame.image.load('unnamed.jpg')  # 500x375
 background = pygame.transform.scale(background, (width, height))
+text_box = pygame.image.load("text_box.png")
+text_box = pygame.transform.scale(text_box, (width+200, int(height/2)+200))
 
 pygame.font.init()
 font = pygame.font.SysFont("Arial", 32)
-textX = 10
-textY = width - 100
+textX = -150
+textY = 300
 
 pygame.mixer.init()
 background_music = pygame.mixer.music.load("Glimpse - Ambitions.mp3")
@@ -202,24 +204,14 @@ def show_and_guess(player, n_d, char, mood, dialogue):
 
     return response
 
-
-def guess():
-    # guess clients purchases
-    pass
-
-
-def client_enter():
-    # generates clients purchases
-    pass
+# shows dialogues
 
 
 def show_dialogue(player, text):
-    screen.fill(pygame.Color('blue'), rect=[
-                0, height - 100, width, height-100])
-    blit_text(screen, player, (10, height - 100),
+    screen.blit(text_box, (textX, textY))
+    blit_text(screen, player, (50, height - 210),
               font, pygame.Color('lightblue'))
-    blit_text(screen, text, (150, height - 100), font)
-
+    blit_text(screen, text, (150, height - 150), font)
     pass
 
 # a functino that shows text
@@ -255,6 +247,7 @@ def show_Background(img):
 def show_Character(img, x, y, mood):
     img = pygame.transform.scale(img, (width, height))
     screen.blit(img, (x, y))
+    pygame.display.update()
 
 
 def show_character(img, x, y, mood):
@@ -296,13 +289,12 @@ while running:
         if step == 0:
             show_character(boss, transitionX, 0, mood)
             if transitionX < 0:
-                transitionX += 5
+                transitionX += 10
             else:
 
                 # pygame.time.wait(6000)
-                show_and_wait("boss", boss_d, boss, mood,
+                show_and_wait("Boss", boss_d, boss, mood,
                               boss_dialogues_step_1)
-
                 boss_d += 1
                 mood += 1
                 if mood > 3:
@@ -310,6 +302,7 @@ while running:
                 if boss_d == len(boss_dialogues_step_1):
                     step = 1
                     boss_d = 0  # will convo too
+                    transitionX = -width
                     print("changed step")
         if step == 1:
             # change_step()
@@ -320,8 +313,12 @@ while running:
             # show_and_wait("Customer " + str(n_c), 0, characters[n_c],
             #               0, characterts_dialogues)
             if responded == False:
+                show_character(characters[n_c], transitionX, 0, 0)
+                while transitionX < 0:
+                    transitionX += 10
+
                 print("take your guess (choose a number)")
-                response = show_and_guess("Customer " + str(n_c), 0, characters[n_c],
+                response = show_and_guess("Customer : " + str(n_c), 0, characters[n_c],
                                           0, characterts_dialogues)
                 responded = True
             if responded:
@@ -329,6 +326,7 @@ while running:
                 show_and_wait("Customer " + str(n_c), response, characters[n_c],
                               response-1, characterts_dialogues)
                 responded = False
+                transitionX = - width
 
             # print("response = "+str(response))
             n_c += 1

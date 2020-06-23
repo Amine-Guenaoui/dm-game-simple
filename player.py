@@ -8,17 +8,26 @@ class Player:
 
         print("player score initialized")
 
-    def get_score():
-        return green_points - red_points
+    def get_score(self):
+        return self.green_points - self.red_points
 
-    def promote():
-        level += 1
+    def promote(self):
+        if self.green_points - self.red_points > 0:
+            self.level += 1
+            return True
+        return False
 
-    def get_level():
-        return level
+    def get_level(self):
+        return self.level
 
-    def add_greenpoints(n):
+    def add_greenpoints(self, n):
         self.green_points += n
 
-    def add_redpoints(n):
+    def add_redpoints(self, n):
         self.red_points += n
+
+    def get_greenPoints(self):
+        return self.green_points
+
+    def get_redPoints(self):
+        return self.red_points

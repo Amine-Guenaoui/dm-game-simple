@@ -9,8 +9,9 @@ class apriori_items_generator:
             ["milk",
              "cheese",
              "eggs",
-             "yougurt",
-             "butter"
+             "yogurt",
+             "butter",
+             "salt"
              ],
             ["onions",
              "garlic",
@@ -21,7 +22,8 @@ class apriori_items_generator:
              "bread"],
             ["orange",
              "apple",
-             "water"]
+             "water",
+             "pineapple"]
         ]
         self.transactions = self.generate_items()
         self.itemsets, self.rules = self.generate_rules()
@@ -34,10 +36,10 @@ class apriori_items_generator:
 
     def generate_items(self):
         l = []
-        l += self.rSubset(self.items[0], 4)
-        l += self.rSubset(self.items[1], 4)
-        l += self.rSubset(self.items[2], 4)
-        l += self.rSubset(self.items[3], 4)
+        l += self.rSubset(self.items[0], 5)
+        l += self.rSubset(self.items[1], 5)
+        l += self.rSubset(self.items[2], 5)
+        l += self.rSubset(self.items[3], 5)
         return l
 
     def show_rules(self):
@@ -58,12 +60,27 @@ class apriori_items_generator:
     def get_rules(self):
         return self.rules
 
-    pass
+    def print_rules(self):
+        line = 1
+        for i in rules:
+            # print(i)
+            # print(i.__dict__)
+            #print(str(i.lhs) + " =>" + str(i.rhs))
+            for j in i.lhs:
+                print(j, end=" ")
+            print("", end=" => ")
+            for j in i.rhs:
+                print(j, end=" ")
+            print(line)
+            line += 1
+            # print(k)
+            # print()
 
 
 application = apriori_items_generator()
 application.show_rules()
 
 rules = application.get_rules()
+application.print_rules()
 
-print(rules)
+# print(rules)

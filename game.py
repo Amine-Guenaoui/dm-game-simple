@@ -31,9 +31,9 @@ hint_font = pygame.font.SysFont("Arial", 16)
 textX = -150
 textY = 300
 # game music
-pygame.mixer.init()
-background_music = pygame.mixer.music.load("Glimpse - Ambitions.mp3")
-pygame.mixer.music.play(-1)
+# pygame.mixer.init()
+#background_music = pygame.mixer.music.load("Glimpse - Ambitions.mp3")
+# pygame.mixer.music.play(-1)
 
 # buttons and interface texts
 press_return = "press return to continue .. "
@@ -42,23 +42,32 @@ press_answer = "pick the right products (choose a number 1-6) "
 
 # getting appriori items
 application = apriori_items_generator()
-print("rules")
-application.print_rules()
+# print("rules")
+# application.print_rules()
 Game_Rules = application.get_rules()
 
+
+# if day is complete and week is complete boss will do a reviewby then a level will be upgraded or not
+# -----------------------------------------------------------
+# mood can go from 0 to 5
+# satisfied happy very_happy , not_satisfied,not_happy,angry
 
 # global variables
 X = 0
 Y = 0
-mood = 2
-transitionX = -width
+mood = 2  # first mood of characters
+boss_mood = 0
+
 step = 0
-boss_d = 0
-day = 0
+boss_d = 0  # first dialogue
+char_d = 0  # first dialogue
+day = 0  # first day
 n_c = 0  # number of customers
 response = 0
 responded = False  # if player reponded
 
+
+clients_number = len(characters_file.characters)  # per day
 right_answers = []
 wrong_answers = []
 # according to levels
@@ -66,12 +75,23 @@ answers_scores = [[3, -1], [2, -1], [1, -1], [1, 2, -1, -2],
                   [2, 3, -1, -2], [1, 3, -1, -2], [1, 2, 3, -1, -2, -3]]
 # the steps are the game plan
 # first step is when boss comes , there are 7 steps , which #represent days ,
-
+transitionX = -width
 clock = pygame.time.Clock()
 # game loop variables
 FPS = 120
 running = True
 
+# items boxes
+bought_posx = 0
+bought_posy = 0
+bought_items_box = pygame.image.load("text_boxes/box.png")
+bought_items_box = pygame.transform.scale(
+    bought_items_box, (items_file.item_width * 4, items_file.item_height * 4))
+item_box = pygame.image.load("text_boxes/box.png")
+item_box = pygame.transform.scale(
+    item_box, (width - items_file.item_width * 4, items_file.item_height * 2))
+items_box = pygame.transform.scale(
+    item_box, (items_file.item_width * 2, items_file.item_height * 2))
 # items to purchase loading images -----
 items_names = [
     "milk",
@@ -94,26 +114,7 @@ items_names = [
 ]
 
 
-# items boxes
-bought_posx = 0
-bought_posy = 0
-bought_items_box = pygame.image.load("text_boxes/box.png")
-bought_items_box = pygame.transform.scale(
-    bought_items_box, (items_file.item_width * 4, items_file.item_height * 4))
-
-# public variables -----
-
-
-boss_mood = 0
-clients_number = len(characters_file.characters)  # per day
-
-# if day is complete and week is complete boss will do a reviewby then a level will be upgraded or not
-# -----------------------------------------------------------
-# mood can go from 0 to 5
-# satisfied happy very_happy , not_satisfied,not_happy,angry
-
-
-# functions
+# functions ----------------------------------------------
 
 
 main_player = Player(0, 0, 1)
@@ -126,7 +127,7 @@ def show_text(text):
     screen.blit(content, (int(width/2), int(height/2)))
 
 
-def show_and_wait(player, boss_d, boss, mood, dialogue):
+def show_and_wait(player, mood_d, ch, mood, dialogue):
     paused = True
 
     while paused:
@@ -138,9 +139,9 @@ def show_and_wait(player, boss_d, boss, mood, dialogue):
                     paused = False
 
         show_Background(background)
-        show_character(boss, 0, 0, mood)
+        show_character(ch, 0, 0, mood)
         show_dialogue(
-            player, dialogue[boss_d])
+            player, dialogue[mood_d])
         show_hint(press_return)
         show_score(main_player)
         pygame.display.update()
@@ -151,7 +152,22 @@ def show_and_wait(player, boss_d, boss, mood, dialogue):
 def show_and_guess(player, n_d, char, mood, dialogue):
     response = 0
     paused = True
-    transaction = random.choice(Game_Rules)  # getting  a random transaction
+    transaction = random.choice(Game_Rules)  # getting  a random
+    choices_list = [items_names[0], transaction.rhs[0]]
+    if main_player.get_level() >= 2:
+        while len(transaction.rhs) < 2:
+            transaction = random.choice(Game_Rules)
+        choices_list = []
+        k = 0
+        for i in range(4):
+            if i % 2 == 0:
+                choices_list.append(items_names[i])
+            else:
+                choices_list.append(transaction.rhs[k])
+                k += 1
+
+    random.shuffle(choices_list)
+    # transaction
     # shuffle items and positions for the wrong answers
     random.shuffle(items_names)
     num = random.randrange(0, 100, 1)
@@ -161,7 +177,7 @@ def show_and_guess(player, n_d, char, mood, dialogue):
         show_dialogue(player, dialogue[n_d])
         show_bought(transaction, items_file.items)  # testing
         wrong_answers, right_answers = show_choices(
-            transaction, items_file.items, main_player.get_level(), num)  # testing
+            transaction, items_file.items, main_player.get_level(), choices_list)  # testing
         print(wrong_answers)
         print(right_answers)
         show_hint(press_answer)
@@ -208,9 +224,13 @@ def blit_text(surface, text, pos, font, color=pygame.Color('white')):
         x = pos[0]  # Reset the x.
         y += word_height  # Start on new row.
 
+# show background
+
 
 def show_Background(img):
     screen.blit(img, (0, 0))
+
+# show character
 
 
 def show_character(img, x, y, mood):
@@ -232,12 +252,12 @@ def print_all_items():
             posx_item = 0
             posy_item += items_file.item_height
 
-# what was bought by a customer
+# show what was bought in a given transaction
 
 
 def show_bought(transaction, items):
 
-    print(transaction)
+    # print(transaction)
     length = len(transaction.lhs)
     ix = width - items_file.item_width * 3
     posx = ix
@@ -256,39 +276,66 @@ def show_bought(transaction, items):
     # show only two items and score is 3
     # get_item(transaction.rhs, items, width/2 + width/4, height/2)
 
-# show item on screen depnding on position
+# show choices for guessing items of a given transaction
 
 
-def show_choices(transaction, items, level, num):
+def show_choices(transaction, items, level, choices_list):
     wrong_answers = []
     right_answers = []
+    x_pose = int(width/2)
+    x_offset = items_file.item_width
+    i_x_pose = x_pose - x_offset * 4
+    y_pose = int(height/2)
+    y_offset = items_file.item_height
+    i_y_pose = y_pose - y_offset
+
     #print("showing choices ")
     if level == 1:  # show two choices with score of 3
         # setting the right answers
-        posx1 = int(width/2) + items_file.item_width * 4
-        posx2 = int(width/2) - items_file.item_width * 4
-        posy = height/2 - items_file.item_height
-        if num > 50:
-            get_item(items_names[0], items_file.items,
-                     posx1, posy)  # wrong answer
-            get_item(transaction.rhs[0], items_file.items, posx2, posy)
-            #print("right ones  ")
-            # the left are wrong and right ones are right
-            wrong_answers = [1, 2, 3]
-            right_answers = [4, 5, 6]
-        else:
-            get_item(transaction.rhs[0], items_file.items, posx1, posy)
-            get_item(items_names[0], items_file.items, posx2, posy)
-            #print("left ones  ")
-            right_answers = [3, 2, 1]
-            wrong_answers = [4, 5, 6]
+
+        for index, c in enumerate(choices_list):
+            screen.blit(items_box, (i_x_pose - x_offset /
+                                    2, i_y_pose - y_offset/2))
+            get_item(c, items,
+                     i_x_pose, i_y_pose)  # wrong answer
+            show_number(index, i_x_pose, i_y_pose)
+            i_x_pose += x_offset * 5
+            if c in transaction.rhs:
+                if index == 0:
+                    right_answers = [3, 2, 1]
+                    wrong_answers = [4, 5, 6]
+                else:
+                    right_answers = [4, 5, 6]
+                    wrong_answers = [3, 2, 1]
+
+    if level == 2:
+        for index, c in enumerate(choices_list):
+            screen.blit(items_box, (i_x_pose - x_offset /
+                                    2, i_y_pose - y_offset/2))
+            get_item(c, items,
+                     i_x_pose, i_y_pose)  # wrong answer
+            show_number(index, i_x_pose, i_y_pose)
+            i_x_pose += x_offset * 2
+            if c in transaction.rhs:
+                right_answers.append(index+1)
+            else:
+                wrong_answers.append(index+1)
 
     return wrong_answers, right_answers
+
+# show an i tem in the screen
+
+
+def show_number(index, i_x_pose, i_y_pose):
+    blit_text(screen, str(index + 1), (i_x_pose + items_file.item_width / 2, i_y_pose +
+                                       items_file.item_height), pygame.font.SysFont("Arial", 42), pygame.Color('white'))
 
 
 def get_item(name, items, x=0, y=0):
 
     screen.blit(items[name], (int(x), int(y)))
+
+# show hints and texts
 
 
 def show_hint(text):
@@ -296,6 +343,8 @@ def show_hint(text):
     hint_text_posy = height - 70
     blit_text(screen, text, (hint_text_posx, hint_text_posy),
               hint_font, pygame.Color('white'))
+
+# shows score and stats
 
 
 def show_score(player):
@@ -309,19 +358,71 @@ def show_score(player):
     blit_text(screen, "level " + str(level), (10, 60),
               font, pygame.Color('purple'))
 
+# sets player stats
+
 
 def score_by_level(response, right_answers, wrong_answers, level):
     mood = 0  # neutral , or satisfied
     if level == 1:
         if response in right_answers:
-            main_player.add_greenpoints(answers_scores[level-1][0])
+            main_player.add_greenpoints(3)
+            mood = 2
+        else:
+            main_player.add_redpoints(1)
+            mood = 3
+    if level == 2:
+        if response in right_answers:
+            main_player.add_greenpoints(
+                2)
+            mood = 2
+        else:
+            main_player.add_redpoints(1)
+            mood = 3
+    if level == 3:
+        if response in right_answers:
+            main_player.add_greenpoints(
+                1)
             mood = 1
         else:
-            main_player.add_redpoints(-answers_scores[level-1][1])
+            main_player.add_redpoints(1)
             mood = 3
-    return mood
+    if level == 5:
+        if response in right_answers:
+            main_player.add_greenpoints(
+                1)
+            mood = 1
+        else:
+            main_player.add_redpoints(2)
+            mood = 3
+    if level == 6:
+        if response in right_answers:
+            main_player.add_greenpoints(
+                1)
+            mood = 1
+        else:
+            main_player.add_redpoints(3)
+            mood = 3
+    if level == 7:
+        if response in right_answers:
+            main_player.add_greenpoints(
+                2)
+            mood = 0
+        else:
+            main_player.add_redpoints(4)
+            mood = 4
+    if level == 8:
+        if response in right_answers:
+            main_player.add_greenpoints(
+                2)
+            mood = 2
+        else:
+            main_player.add_redpoints(5)
+            mood = 5
 
+    char_d = mood + 1
+    return char_d, mood
 
+    # main loop
 while running:
     dt = clock.tick(FPS) / 1000
 
@@ -334,26 +435,27 @@ while running:
     if X > 254:  # game starts here
         show_Background(background)
 
-        if step == 0:
-            show_character(characters_file.boss, transitionX, 0, mood)
+        if step == 0:  # boss visit
+            show_character(characters_file.boss, transitionX, 0, boss_mood)
 
             if transitionX < 0:
                 transitionX += 10
             else:
 
                 # pygame.time.wait(6000)
-                show_and_wait("Boss", boss_d, characters_file.boss, mood,
+                show_and_wait("Boss", boss_d, characters_file.boss, boss_mood,
                               dialogues_file.boss_dialogues_step_1)
                 boss_d += 1
-                mood += 1
-                if mood > 3:
-                    mood = 0
+                boss_mood += 1
+                if boss_mood > 3:
+                    boss_mood = 0
                 if boss_d == len(dialogues_file.boss_dialogues_step_1):
                     step = 1
                     boss_d = 0  # will convo too
                     transitionX = -width
                     print("changed step")
         if step == 1:
+            # initializing the right and wrong answers
             wrong_answers, right_answers = [], []
             # change_step()
             # responses are set to 6
@@ -375,25 +477,30 @@ while running:
                 print(response in right_answers)
                 responded = True
             if responded:
-                print("result : " + str(response))
-                print(response in right_answers)
-                mood = score_by_level(
+                #print("result : " + str(response))
+                #print(response in right_answers)
+                char_d, mood = score_by_level(
                     response, right_answers, wrong_answers, main_player.get_level())
-                show_and_wait("Customer " + str(n_c), mood, characters_file.characters[n_c],
-                              response-1, dialogues_file.characterts_dialogues)
+                show_and_wait("Customer " + str(n_c), char_d, characters_file.characters[n_c],
+                              mood, dialogues_file.characterts_dialogues)
                 responded = False
 
             # print("response = "+str(response))
             n_c += 1
             if n_c == len(characters_file.characters):
-                step = 0  # it's time for boss to visit
+                # it's time for boss to visit
+                step = 0
                 n_c = 0  # reset the customers
                 transitionX = -width  # boss is comimg back home
                 if main_player.promote():
-                    print("level upgrade")
+                    print("level upgrade (end of day) ")
                     # jump to boss happy , and resens step
+                    step = 0  # main_plaer.get_level()+1
                 else:
-                    print("keep trying ")
+                    print("game over ")
+                    # show boss unhappy
+                    boss_mood = 3
+                    # main_player.reset()
                     # jump to boss unhappy
 
     else:
@@ -401,9 +508,7 @@ while running:
         screen.fill([X, X, X])
         text = "The Grocery Store"
         blit_text(screen, text,
-                  (int(width/2 - len(text)), int(height/2)), font, pygame.Color('black'))
+                  (int(width/3), int(height/2)), font, pygame.Color('black'))
         X += 1
 
     pygame.display.update()
-
-    # adding an image

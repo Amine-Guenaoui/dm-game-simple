@@ -31,3 +31,8 @@ class Player:
 
     def get_redPoints(self):
         return self.red_points
+
+    def reset(self):
+        self.green_points = 0  # guessed right points
+        self.red_points = 0  # guessed wrong points
+        self.level = 1  # his grade or level

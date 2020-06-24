@@ -31,9 +31,9 @@ hint_font = pygame.font.SysFont("Arial", 16)
 textX = -150
 textY = 300
 # game music
-# pygame.mixer.init()
-#background_music = pygame.mixer.music.load("Glimpse - Ambitions.mp3")
-# pygame.mixer.music.play(-1)
+pygame.mixer.init()
+background_music = pygame.mixer.music.load("Glimpse - Ambitions.mp3")
+pygame.mixer.music.play(-1)
 
 # buttons and interface texts
 press_return = "press return to continue .. "

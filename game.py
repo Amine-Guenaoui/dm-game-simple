@@ -50,7 +50,7 @@ Game_Rules = application.get_rules()
 # if day is complete and week is complete boss will do a reviewby then a level will be upgraded or not
 # -----------------------------------------------------------
 # mood can go from 0 to 5
-# satisfied happy very_happy , not_satisfied,not_happy,angry
+# satisfied, happy, very_happy , not_satisfied,not_happy,angry
 
 # global variables
 X = 0
@@ -58,12 +58,12 @@ Y = 0
 mood = 2  # first mood of characters
 boss_mood = 0
 
-step = 0
-boss_d = 0  # first dialogue
-char_d = 0  # first dialogue
+step = 0   # represents the level
+boss_d = 0  # boss's first dialogue
+char_d = 0  # char's first dialogue
 day = 0  # first day
 n_c = 0  # number of customers
-response = 0
+response = 0  # dialogue's answer
 responded = False  # if player reponded
 
 
@@ -118,7 +118,7 @@ items_names = [
 
 
 main_player = Player(0, 0, 1)
-
+game_over = False
 # character_name , dialogue ,character , mood
 
 
@@ -165,7 +165,7 @@ def show_and_guess(player, n_d, char, mood, dialogue):
             else:
                 choices_list.append(transaction.rhs[k])
                 k += 1
-
+    # shuffle the choices
     random.shuffle(choices_list)
     # transaction
     # shuffle items and positions for the wrong answers
@@ -203,7 +203,7 @@ def show_dialogue(player, text):
     blit_text(screen, text, (150, height - 150), font)
     pass
 
-# a functino that shows text
+# a function that shows text
 
 
 def blit_text(surface, text, pos, font, color=pygame.Color('white')):
@@ -308,7 +308,7 @@ def show_choices(transaction, items, level, choices_list):
                     right_answers = [4, 5, 6]
                     wrong_answers = [3, 2, 1]
 
-    if level == 2:
+    else:  # level == 2:
         for index, c in enumerate(choices_list):
             screen.blit(items_box, (i_x_pose - x_offset /
                                     2, i_y_pose - y_offset/2))
@@ -422,7 +422,19 @@ def score_by_level(response, right_answers, wrong_answers, level):
     char_d = mood + 1
     return char_d, mood
 
-    # main loop
+
+# waits for key press
+def wait_for_key_press():
+    paused = True
+    while paused:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
+            if event.type == pygame.KEYDOWN:
+                exit()
+
+
+# main loop
 while running:
     dt = clock.tick(FPS) / 1000
 
@@ -436,20 +448,22 @@ while running:
         show_Background(background)
 
         if step == 0:  # boss visit
+            boss_dialogue = dialogues_file.boss_dialogues_step_1
+            if main_player.get_level() >= 2:
+                boss_dialogue = dialogues_file.boss_dialogues_step_2
             show_character(characters_file.boss, transitionX, 0, boss_mood)
 
             if transitionX < 0:
                 transitionX += 10
             else:
-
                 # pygame.time.wait(6000)
                 show_and_wait("Boss", boss_d, characters_file.boss, boss_mood,
-                              dialogues_file.boss_dialogues_step_1)
+                              boss_dialogue)
                 boss_d += 1
                 boss_mood += 1
                 if boss_mood > 3:
                     boss_mood = 0
-                if boss_d == len(dialogues_file.boss_dialogues_step_1):
+                if boss_d == len(boss_dialogue):
                     step = 1
                     boss_d = 0  # will convo too
                     transitionX = -width
@@ -492,23 +506,49 @@ while running:
                 step = 0
                 n_c = 0  # reset the customers
                 transitionX = -width  # boss is comimg back home
+
                 if main_player.promote():
                     print("level upgrade (end of day) ")
                     # jump to boss happy , and resens step
                     step = 0  # main_plaer.get_level()+1
+                    main_player.reset_points()
                 else:
                     print("game over ")
                     # show boss unhappy
                     boss_mood = 3
-                    # main_player.reset()
+                    main_player.reset()
+                    step = 2
                     # jump to boss unhappy
 
+        if step == 2:  # game over
+            boss_dialogue = dialogues_file.boss_dialogues_step_3
+            show_character(characters_file.boss, transitionX, 0, boss_mood)
+
+            if transitionX < 0:
+                transitionX += 10
+            else:
+                # pygame.time.wait(6000)
+                text = " GAME OVER !"
+
+                show_and_wait("Boss", boss_d, characters_file.boss, boss_mood,
+                              boss_dialogue)
+                blit_text(screen, text, (int(width/3),
+                                         int(height/2)), font, pygame.Color('RED'))
+                boss_d += 1
+                boss_mood += 1
+                if boss_mood == 5:
+                    boss_mood = 3
+                if boss_d == len(dialogues_file.boss_dialogues_step_1):
+
+                    boss_d = 0  # will convo too
+                    print("game end")
+                    wait_for_key_press()
     else:
         # print(X)
         screen.fill([X, X, X])
         text = "The Grocery Store"
         blit_text(screen, text,
-                  (int(width/3), int(height/2)), font, pygame.Color('black'))
+                  (int(width/3-17), int(height/2)), font, pygame.Color('black'))
         X += 1
 
     pygame.display.update()

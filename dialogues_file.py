@@ -9,6 +9,22 @@ boss_dialogues_step_1 = [
     "Allright , see you at the end of the week ,  goodluck !"
 ]
 
+boss_dialogues_step_2 = [
+    "we're happy to see that you're improving , ",
+    "let's hope you can keep up the good work",
+    "but this doesn't mean you can get ahead of yourselve",
+    "don't be overcondifent , and don't let us down ",
+    "good luck ! , till next time "
+
+]
+boss_dialogues_step_3 = [
+    "hello , i'm here to set you free ",
+    "i wish you goodluck in your life ",
+    "and finding another job ..",
+    "sorry ,it had to end like this ...",
+    "but the customers , kept complaining ..",
+
+]
 characterts_dialogues = [
     "Good Day ! , i don't usally see you here ",
     "hmmm , thank you ! (satisfied)",

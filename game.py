@@ -57,10 +57,17 @@ font = pygame.font.SysFont("Arial", 32)
 hint_font = pygame.font.SysFont("Arial", 16)
 textX = -150
 textY = 300
+
 # game music
-# pygame.mixer.init()
+pygame.mixer.pre_init(44100, 16, 2, 4096)
+pygame.mixer.init()
 # background_music = pygame.mixer.music.load("Glimpse - Ambitions.mp3")
 # pygame.mixer.music.play(-1)
+short_generic_action_tone_3 = pygame.mixer.Sound(
+    'sound_effects/short_generic_action_tone_003.wav')
+short_generic_action_tone_1 = pygame.mixer.Sound(
+    'sound_effects/short_generic_action_tone.wav')
+short_negative_3 = pygame.mixer.Sound('sound_effects/short_negative_003.wav')
 
 # buttons and interface texts
 press_return = "press return to continue .. "
@@ -153,6 +160,10 @@ game_over = False
 # character_name , dialogue ,character , mood
 
 
+def play_sound_effect(sound_effect):
+    sound_effect.play()
+
+
 def show_text(text):
     content = font.render(font_text, False, (255, 255, 255))
     screen.blit(content, (int(width/2), int(height/2)))
@@ -212,7 +223,7 @@ def show_and_guess(player, n_d, char, mood, dialogue):
         wrong_answers, right_answers, shown_items = show_choices(
             transaction, items_file.items, main_player.get_level(), choices_list)  # testing
         # print(wrong_answers)
-        # print(right_answers)
+        print(right_answers)
         show_hint(press_answer)
         show_score(main_player)
         pygame.display.update()
@@ -232,17 +243,20 @@ def show_and_guess(player, n_d, char, mood, dialogue):
                 # print(shown_items)
                 x, y = event.pos
                 for index, clicked in enumerate(shown_items):
-                    print(clicked)
-                    print(x-clicked[0])
-                    print(y-clicked[1])
+                    # print(clicked)
+                    # print(x-clicked[0])
+                    # print(y-clicked[1])
                     if (x-clicked[0] >= 0 and x-clicked[0] < 100) and (y-clicked[1] >= 0 and y-clicked[1] < 100):
                         print('clicked on the item : ')
                         print(index+1)
+                        print("level")
+                        print(main_player.get_level())
                         print()
-                        if main_player.get_level() == 1:
+                        response = index+1
+                        if main_player.get_level() < 2:
                             if index > 0:
-                                response = 3
-                        response = index
+                                response = 4
+
                         paused = False
     return response, wrong_answers, right_answers
 
@@ -344,7 +358,7 @@ def show_choices(transaction, items, level, choices_list):
     i_x_pose = x_pose - x_offset * 5
     y_pose = int(height/2)
     y_offset = items_file.item_height
-    i_y_pose = y_pose + y_offset/2
+    i_y_pose = y_pose + y_offset/4
     shown_items = []  # for the mouse click
     #print("showing choices ")
     if level == 1:  # show two choices with score of 3
@@ -369,7 +383,7 @@ def show_choices(transaction, items, level, choices_list):
                     right_answers = [4, 5, 6]
                     wrong_answers = [3, 2, 1]
 
-    else:  # level == 2:
+    elif level > 1:  # level >= 1:
         for index, c in enumerate(choices_list):
             pos = []
             pos.append(i_x_pose - x_offset / 2)
@@ -432,69 +446,123 @@ def score_by_level(response, right_answers, wrong_answers, level):
         if response in right_answers:
             main_player.add_greenpoints(3)
             mood = 2
+            play_sound_effect(short_generic_action_tone_3)
         else:
             main_player.add_redpoints(1)
             mood = 3
+            play_sound_effect(short_negative_3)
     if level == 2:
         if response in right_answers:
             main_player.add_greenpoints(
                 2)
             mood = 2
+            play_sound_effect(short_generic_action_tone_3)
         else:
             main_player.add_redpoints(1)
             mood = 3
+            play_sound_effect(short_negative_3)
     if level == 3:
         if response in right_answers:
             main_player.add_greenpoints(
                 1)
             mood = 1
+            play_sound_effect(short_generic_action_tone_3)
         else:
             main_player.add_redpoints(1)
             mood = 3
+            play_sound_effect(short_negative_3)
+    if level == 4:
+        if response in right_answers:
+            main_player.add_greenpoints(
+                1)
+            mood = 1
+            play_sound_effect(short_generic_action_tone_3)
+        else:
+            main_player.add_redpoints(2)
+            mood = 3
+            play_sound_effect(short_negative_3)
     if level == 5:
         if response in right_answers:
             main_player.add_greenpoints(
                 1)
             mood = 1
+            play_sound_effect(short_generic_action_tone_3)
         else:
-            main_player.add_redpoints(2)
+            main_player.add_redpoints(3)
             mood = 3
+            play_sound_effect(short_negative_3)
     if level == 6:
         if response in right_answers:
             main_player.add_greenpoints(
                 1)
             mood = 1
+            play_sound_effect(short_generic_action_tone_3)
         else:
             main_player.add_redpoints(3)
             mood = 3
+            play_sound_effect(short_negative_3)
     if level == 7:
         if response in right_answers:
             main_player.add_greenpoints(
                 2)
             mood = 0
+            play_sound_effect(short_generic_action_tone_3)
         else:
             main_player.add_redpoints(4)
             mood = 4
+            play_sound_effect(short_negative_3)
     if level == 8:
         if response in right_answers:
             main_player.add_greenpoints(
                 2)
             mood = 2
+            play_sound_effect(short_generic_action_tone_3)
         else:
             main_player.add_redpoints(5)
             mood = 5
-
+            play_sound_effect(short_negative_3)
+    if level > 8:
+        if response in right_answers:
+            main_player.add_greenpoints(
+                100)
+            mood = 2
+            play_sound_effect(short_generic_action_tone_3)
+        else:
+            main_player.add_redpoints(500)
+            mood = 5
+            play_sound_effect(short_negative_3)
     char_d = mood + 1
     return char_d, mood
 
 
 # waits for key press
-def wait_for_key_press():
+def wait_for_key_press(end_game):
     paused = True
     while paused:
+
         screen.fill([0, 0, 0])
         blit_text(screen, text, (int(width/3),
-                                 int(height/2)), font, pygame.Color('RED'))
+                                 int(height/2)), font_title, pygame.Color('RED'))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
+            if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                paused = False
+                print("making end game true ")
+                end_game = True
+
+# wait to restart game
+
+
+def wait_to_restart(end_game):
+    paused = True
+    while paused:
+
+        screen.fill([0, 0, 0])
+        blit_text(screen, text, (int(width/3),
+                                 int(height/2)), font_title, pygame.Color('RED'))
+        blit_text(screen, "press to restart", (int(width/3),
+                                               int(height/4)*3), font_title, pygame.Color('White'))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quit()
@@ -516,9 +584,13 @@ def wait_for_key_press():
                 response = 0  # dialogue's answer
                 responded = False  # if player reponded
                 paused = False
+                end_game = False
 
 
+# global
+End_Game = False
 # main loop
+
 while running:
     dt = clock.tick(FPS) / 1000
 
@@ -527,111 +599,122 @@ while running:
             running = False
 
     # background filling ( must make it gradient)
+    if not End_Game:
+        if X > 254:  # game starts here
+            show_Background(background)
+            # print("1--")
+            if step == 0:  # boss visit
+                print("2--")
+                boss_dialogue = dialogues_file.boss_dialogues_step_1
+                if main_player.get_level() >= 2:
+                    boss_dialogue = dialogues_file.boss_dialogues_step_2
+                show_character(characters_file.boss, transitionX, 0, boss_mood)
 
-    if X > 254:  # game starts here
-        show_Background(background)
-
-        if step == 0:  # boss visit
-            boss_dialogue = dialogues_file.boss_dialogues_step_1
-            if main_player.get_level() >= 2:
-                boss_dialogue = dialogues_file.boss_dialogues_step_2
-            show_character(characters_file.boss, transitionX, 0, boss_mood)
-
-            if transitionX < 0:
-                transitionX += 10
-            else:
-                # pygame.time.wait(6000)
-                show_and_wait("Boss", boss_d, characters_file.boss, boss_mood,
-                              boss_dialogue)
-                boss_d += 1
-                boss_mood += 1
-                if boss_mood > 3:
-                    boss_mood = 0
-                if boss_d == len(boss_dialogue):
-                    step = 1
-                    boss_d = 0  # will convo too
-                    transitionX = -width
-                    print("changed step")
-        if step == 1:
-            # initializing the right and wrong answers
-            wrong_answers, right_answers = [], []
-            # change_step()
-            # responses are set to 6
-            # characters dialogues responde depending on responses
-            # show first customer
-
-            # show_and_wait("Customer " + str(n_c), 0, characters[n_c],
-            #               0, characterts_dialogues)
-            if responded == False:
-                show_character(
-                    characters_file.characters[n_c], transitionX, 0, 0)
-                while transitionX < 0:
+                if transitionX < 0:
                     transitionX += 10
-
-                print("take your guess (choose a number)")
-                response, wrong_answers, right_answers = show_and_guess("Customer : " + str(n_c), 0, characters_file.characters[n_c],
-                                                                        0, dialogues_file.characterts_dialogues)
-                print()
-                print(response in right_answers)
-                responded = True
-            if responded:
-                #print("result : " + str(response))
-                #print(response in right_answers)
-                char_d, mood = score_by_level(
-                    response, right_answers, wrong_answers, main_player.get_level())
-                show_and_wait("Customer " + str(n_c), char_d, characters_file.characters[n_c],
-                              mood, dialogues_file.characterts_dialogues)
-                responded = False
-
-            # print("response = "+str(response))
-            n_c += 1
-            if n_c == len(characters_file.characters):
-                # it's time for boss to visit
-                step = 0
-                n_c = 0  # reset the customers
-                transitionX = -width  # boss is comimg back home
-
-                if main_player.promote():
-                    print("level upgrade (end of day) ")
-                    # jump to boss happy , and resens step
-                    step = 0  # main_plaer.get_level()+1
-                    main_player.reset_points()
                 else:
-                    print("game over ")
-                    # show boss unhappy
-                    boss_mood = 3
-                    main_player.reset()
-                    step = 2
-                    # jump to boss unhappy
+                    # pygame.time.wait(6000)
+                    show_and_wait("Boss", boss_d, characters_file.boss, boss_mood,
+                                  boss_dialogue)
+                    boss_d += 1
+                    boss_mood += 1
+                    if boss_mood > 3:
+                        boss_mood = 0
+                    if boss_d == len(boss_dialogue):
+                        step = 1
+                        boss_d = 0  # will convo too
+                        transitionX = -width
+                        print("changed step")
+            if step == 1:
+                # print("3--")
+                # initializing the right and wrong answers
+                wrong_answers, right_answers = [], []
+                # change_step()
+                # responses are set to 6
+                # characters dialogues responde depending on responses
+                # show first customer
 
-        if step == 2:  # game over
-            boss_dialogue = dialogues_file.boss_dialogues_step_3
-            show_character(characters_file.boss, transitionX, 0, boss_mood)
+                # show_and_wait("Customer " + str(n_c), 0, characters[n_c],
+                #               0, characterts_dialogues)
+                if responded == False:
+                    show_character(
+                        characters_file.characters[n_c], transitionX, 0, 0)
+                    while transitionX < 0:
+                        transitionX += 10
 
-            if transitionX < 0:
-                transitionX += 10
-            else:
-                # pygame.time.wait(6000)
-                text = " GAME OVER !"
+                    print("take your guess (choose a number)")
+                    response, wrong_answers, right_answers = show_and_guess("Customer : " + str(n_c), 0, characters_file.characters[n_c],
+                                                                            0, dialogues_file.characterts_dialogues)
+                    print("right answers")
+                    print(right_answers)
+                    print("response")
+                    print(response)
+                    print(response in right_answers)
+                    responded = True
+                if responded:
+                    #print("result : " + str(response))
+                    #print(response in right_answers)
 
-                show_and_wait("Boss", boss_d, characters_file.boss, boss_mood,
-                              boss_dialogue)
+                    char_d, mood = score_by_level(
+                        response, right_answers, wrong_answers, main_player.get_level())
+                    show_and_wait("Customer " + str(n_c), char_d, characters_file.characters[n_c],
+                                  mood, dialogues_file.characterts_dialogues)
+                    responded = False
 
-                boss_d += 1
-                boss_mood += 1
-                if boss_mood == 5:
-                    boss_mood = 3
-                if boss_d == len(dialogues_file.boss_dialogues_step_1):
+                # print("response = "+str(response))
+                n_c += 1
+                if n_c == len(characters_file.characters):
+                    # it's time for boss to visit
+                    step = 0
+                    n_c = 0  # reset the customers
+                    transitionX = -width  # boss is comimg back home
 
-                    # boss_d = 0  # will convo too
-                    print("game end")
-                    wait_for_key_press()
+                    if main_player.promote():
+                        print("level upgrade (end of day) ")
+                        # jump to boss happy , and resens step
+                        step = 0  # main_plaer.get_level()+1
+                        main_player.reset_points()
+                    else:
+                        print("game over ")
+                        # show boss unhappy
+                        boss_mood = 3
+                        main_player.reset()
+                        step = 2
+                        # jump to boss unhappy
+
+            if step == 2:  # game over
+                # print("4---")
+                boss_dialogue = dialogues_file.boss_dialogues_step_3
+                show_character(characters_file.boss, transitionX, 0, boss_mood)
+
+                if transitionX < 0:
+                    transitionX += 10
+                else:
+                    # pygame.time.wait(6000)
+                    text = " GAME OVER !"
+                    if boss_mood >= 5:
+                        boss_mood = 3
+
+                    if boss_d >= len(dialogues_file.boss_dialogues_step_1):
+
+                        # boss_d = 0  # will convo too
+                        print("game end")
+                        wait_for_key_press(End_Game)
+                    else:
+                        show_and_wait("Boss", boss_d, characters_file.boss, boss_mood,
+                                      boss_dialogue)
+
+                        boss_d += 1
+                        boss_mood += 1
+
+        else:
+            # print("5--")
+            # print(X)
+            screen.fill([X, X, X])
+            text = "The Grocery Store"
+            blit_text(screen, text,
+                      (int(width/3-17), int(height/2-height/4)), font_title, pygame.Color('black'))
+            X += 1
     else:
-        # print(X)
-        screen.fill([X, X, X])
-        text = "The Grocery Store"
-        blit_text(screen, text,
-                  (int(width/3-17), int(height/2-height/4)), font_title, pygame.Color('black'))
-        X += 1
-
+        wait_to_restart(End_Game)
     pygame.display.update()

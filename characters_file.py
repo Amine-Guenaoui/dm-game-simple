@@ -7,7 +7,7 @@ boss = [
     pygame.image.load('Characters/Boss_character2/very_happy.png'),
     pygame.image.load('Characters/Boss_character2/not_satisfied.png'),
     pygame.image.load('Characters/Boss_character2/not_happy.png'),
-    pygame.image.load('Characters/Client_man/angry.png'),
+    pygame.image.load('Characters/Boss_character2/angry.png'),
 ]
 
 client_man = [

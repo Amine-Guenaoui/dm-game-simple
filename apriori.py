@@ -8,7 +8,6 @@ class apriori_items_generator:
         self.items = items = [
             ["milk",
              "cheese",
-             "eggs",
              "yogurt",
              "butter",
              "salt"

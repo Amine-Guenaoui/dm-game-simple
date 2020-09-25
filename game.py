@@ -22,8 +22,35 @@ pygame.display.set_caption("Grocery Store")
 # background
 background = pygame.image.load('unnamed.jpg')  # 500x375
 background = pygame.transform.scale(background, (width, height))
-text_box = pygame.image.load("text_box.png")
-text_box = pygame.transform.scale(text_box, (width+200, int(height/2)+200))
+
+# text box
+text_box = pygame.image.load("long_text_box_1.png")
+text_box_x = 0
+text_box_y = int(height/4)*3
+text_box_width = width
+text_box_height = int(height/4)
+text_box = pygame.transform.scale(text_box, (text_box_width, text_box_height))
+
+# player_name box
+player_name_text_box = pygame.image.load("long_text_box_1.png")
+player_name_text_box_x = int(text_box_height / 10)
+player_name_text_box_y = text_box_y - int(text_box_height / 10) * 3
+player_name_text_box_width = int(width / 10) * 4
+player_name_text_box_height = int(text_box_height / 10) * 3
+player_name_text_box = pygame.transform.scale(
+    player_name_text_box, (player_name_text_box_width, player_name_text_box_height))
+
+# stats box
+stats_box = pygame.image.load('item_box_2.png')
+stats_box_x = 0
+stats_box_y = 0
+stats_box_width = int(width/10*3/2)
+stats_box_height = int(height/10*3/2)
+stats_box = pygame.transform.scale(
+    stats_box, (stats_box_width, stats_box_height))
+
+stats_x = int(stats_box_width / 10)
+stats_y = int(stats_box_height / 5)
 
 pygame.font.init()
 font = pygame.font.SysFont("Arial", 32)
@@ -31,9 +58,9 @@ hint_font = pygame.font.SysFont("Arial", 16)
 textX = -150
 textY = 300
 # game music
-pygame.mixer.init()
-background_music = pygame.mixer.music.load("Glimpse - Ambitions.mp3")
-pygame.mixer.music.play(-1)
+# pygame.mixer.init()
+# background_music = pygame.mixer.music.load("Glimpse - Ambitions.mp3")
+# pygame.mixer.music.play(-1)
 
 # buttons and interface texts
 press_return = "press return to continue .. "
@@ -84,10 +111,12 @@ running = True
 # items boxes
 bought_posx = 0
 bought_posy = 0
-bought_items_box = pygame.image.load("text_boxes/box.png")
+#bought_items_box = pygame.image.load("text_boxes/box.png")
+bought_items_box = pygame.image.load("item_box_2.png")
 bought_items_box = pygame.transform.scale(
     bought_items_box, (items_file.item_width * 4, items_file.item_height * 4))
-item_box = pygame.image.load("text_boxes/box.png")
+#item_box = pygame.image.load("text_boxes/box.png")
+item_box = pygame.image.load("item_box_2.png")
 item_box = pygame.transform.scale(
     item_box, (width - items_file.item_width * 4, items_file.item_height * 2))
 items_box = pygame.transform.scale(
@@ -96,7 +125,6 @@ items_box = pygame.transform.scale(
 items_names = [
     "milk",
     "cheese",
-    "eggs",
     "yogurt",
     "butter",
     "salt",
@@ -113,7 +141,10 @@ items_names = [
     "pineapple"
 ]
 
-
+# fonts
+font_title = pygame.font.Font("fonts/Black_Tail.ttf", 100)
+font_player_name = pygame.font.Font("fonts/Revorioum_PERSONAL_use.ttf", 40)
+font_text = pygame.font.Font("fonts/DancingScript-Regular.ttf", 26)
 # functions ----------------------------------------------
 
 
@@ -123,7 +154,7 @@ game_over = False
 
 
 def show_text(text):
-    content = font.render(text, False, (255, 255, 255))
+    content = font.render(font_text, False, (255, 255, 255))
     screen.blit(content, (int(width/2), int(height/2)))
 
 
@@ -137,6 +168,8 @@ def show_and_wait(player, mood_d, ch, mood, dialogue):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     paused = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                paused = False
 
         show_Background(background)
         show_character(ch, 0, 0, mood)
@@ -176,10 +209,10 @@ def show_and_guess(player, n_d, char, mood, dialogue):
         show_character(char, 0, 0, mood)
         show_dialogue(player, dialogue[n_d])
         show_bought(transaction, items_file.items)  # testing
-        wrong_answers, right_answers = show_choices(
+        wrong_answers, right_answers, shown_items = show_choices(
             transaction, items_file.items, main_player.get_level(), choices_list)  # testing
-        print(wrong_answers)
-        print(right_answers)
+        # print(wrong_answers)
+        # print(right_answers)
         show_hint(press_answer)
         show_score(main_player)
         pygame.display.update()
@@ -191,16 +224,40 @@ def show_and_guess(player, n_d, char, mood, dialogue):
                 if x in ['0', '1', '2', '3', '4', '5', '6']:
                     response = int(x)
                     paused = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # Set the x, y postions of the mouse click
+                #print('mouse clicked')
+                # print(event.pos)
+                print()
+                # print(shown_items)
+                x, y = event.pos
+                for index, clicked in enumerate(shown_items):
+                    print(clicked)
+                    print(x-clicked[0])
+                    print(y-clicked[1])
+                    if (x-clicked[0] >= 0 and x-clicked[0] < 100) and (y-clicked[1] >= 0 and y-clicked[1] < 100):
+                        print('clicked on the item : ')
+                        print(index+1)
+                        print()
+                        if main_player.get_level() == 1:
+                            if index > 0:
+                                response = 3
+                        response = index
+                        paused = False
     return response, wrong_answers, right_answers
 
 # shows dialogues
 
 
 def show_dialogue(player, text):
-    screen.blit(text_box, (textX, textY))
-    blit_text(screen, player, (50, height - 210),
-              font, pygame.Color('lightblue'))
-    blit_text(screen, text, (150, height - 150), font)
+    screen.blit(text_box, (text_box_x, text_box_y))
+    screen.blit(player_name_text_box,
+                (player_name_text_box_x, player_name_text_box_y))
+
+    blit_text(screen, player, (int(player_name_text_box_x + player_name_text_box_width/3), int(player_name_text_box_y + player_name_text_box_height/3)),
+              font_player_name, pygame.Color('lightblue'))
+    blit_text(screen, text, (int(text_box_x + text_box_width/10),
+                             int(text_box_y + text_box_height/4)), font_text)
     pass
 
 # a function that shows text
@@ -284,21 +341,25 @@ def show_choices(transaction, items, level, choices_list):
     right_answers = []
     x_pose = int(width/2)
     x_offset = items_file.item_width
-    i_x_pose = x_pose - x_offset * 4
+    i_x_pose = x_pose - x_offset * 5
     y_pose = int(height/2)
     y_offset = items_file.item_height
-    i_y_pose = y_pose - y_offset
-
+    i_y_pose = y_pose + y_offset/2
+    shown_items = []  # for the mouse click
     #print("showing choices ")
     if level == 1:  # show two choices with score of 3
         # setting the right answers
 
         for index, c in enumerate(choices_list):
-            screen.blit(items_box, (i_x_pose - x_offset /
-                                    2, i_y_pose - y_offset/2))
+            pos = []
+            pos.append(i_x_pose - x_offset / 2)
+            pos.append(i_y_pose - y_offset/2)
+            screen.blit(items_box, (pos[0], pos[1]))
             get_item(c, items,
                      i_x_pose, i_y_pose)  # wrong answer
-            show_number(index, i_x_pose, i_y_pose)
+
+            #show_number(index, i_x_pose, i_y_pose)
+            shown_items.append(pos)
             i_x_pose += x_offset * 5
             if c in transaction.rhs:
                 if index == 0:
@@ -310,18 +371,21 @@ def show_choices(transaction, items, level, choices_list):
 
     else:  # level == 2:
         for index, c in enumerate(choices_list):
-            screen.blit(items_box, (i_x_pose - x_offset /
-                                    2, i_y_pose - y_offset/2))
+            pos = []
+            pos.append(i_x_pose - x_offset / 2)
+            pos.append(i_y_pose - y_offset/2)
+            screen.blit(items_box, (pos[0], pos[1]))
             get_item(c, items,
                      i_x_pose, i_y_pose)  # wrong answer
-            show_number(index, i_x_pose, i_y_pose)
+            shown_items.append(pos)
+            #show_number(index, i_x_pose, i_y_pose)
             i_x_pose += x_offset * 2
             if c in transaction.rhs:
                 right_answers.append(index+1)
             else:
                 wrong_answers.append(index+1)
 
-    return wrong_answers, right_answers
+    return wrong_answers, right_answers, shown_items
 
 # show an i tem in the screen
 
@@ -351,11 +415,12 @@ def show_score(player):
     red_points = player.get_redPoints()
     green_points = player.get_greenPoints()
     level = player.get_level()
-    blit_text(screen, "red " + str(red_points), (10, 0),
+    screen.blit(stats_box, (stats_box_x, stats_box_y))
+    blit_text(screen, "red " + str(red_points), (stats_x, stats_y),
               font, pygame.Color('red'))
-    blit_text(screen, "green " + str(green_points), (10, 30),
+    blit_text(screen, "green " + str(green_points), (stats_x, stats_y*2),
               font, pygame.Color('green'))
-    blit_text(screen, "level " + str(level), (10, 60),
+    blit_text(screen, "level " + str(level), (stats_x, stats_y*3),
               font, pygame.Color('purple'))
 
 # sets player stats
@@ -427,11 +492,30 @@ def score_by_level(response, right_answers, wrong_answers, level):
 def wait_for_key_press():
     paused = True
     while paused:
+        screen.fill([0, 0, 0])
+        blit_text(screen, text, (int(width/3),
+                                 int(height/2)), font, pygame.Color('RED'))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quit()
-            if event.type == pygame.KEYDOWN:
-                exit()
+            if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                main_player = Player(0, 0, 1)
+                X = 0
+                transitionX = -width
+                step = 0
+                # global variables
+                X = 0
+                Y = 0
+                mood = 2  # first mood of characters
+                boss_mood = 0
+                step = 0   # represents the level
+                boss_d = 0  # boss's first dialogue
+                char_d = 0  # char's first dialogue
+                day = 0  # first day
+                n_c = 0  # number of customers
+                response = 0  # dialogue's answer
+                responded = False  # if player reponded
+                paused = False
 
 
 # main loop
@@ -532,15 +616,14 @@ while running:
 
                 show_and_wait("Boss", boss_d, characters_file.boss, boss_mood,
                               boss_dialogue)
-                blit_text(screen, text, (int(width/3),
-                                         int(height/2)), font, pygame.Color('RED'))
+
                 boss_d += 1
                 boss_mood += 1
                 if boss_mood == 5:
                     boss_mood = 3
                 if boss_d == len(dialogues_file.boss_dialogues_step_1):
 
-                    boss_d = 0  # will convo too
+                    # boss_d = 0  # will convo too
                     print("game end")
                     wait_for_key_press()
     else:
@@ -548,7 +631,7 @@ while running:
         screen.fill([X, X, X])
         text = "The Grocery Store"
         blit_text(screen, text,
-                  (int(width/3-17), int(height/2)), font, pygame.Color('black'))
+                  (int(width/3-17), int(height/2-height/4)), font_title, pygame.Color('black'))
         X += 1
 
     pygame.display.update()
